@@ -1,0 +1,107 @@
+KORISNIK:
+[Dostavljen izvorni C# kod klase Cart.cs]
+Koristeci ovaj kod, trebam napisem odredjene testova tipa:
+[Test]
+public void AddOneToCart_OneMonitorToCart_Success()
+{
+    // ARRANGE
+    Cart cart = new Cart();
+    Monitor monitor = new Monitor();
+    // ACT
+    cart.AddOneToCart(monitor);
+    // ASSERT
+    Assert.That(1, Is.EqualTo(cart.Monitor_counter));
+}
+Napisi mi par primera.
+
+GEMINI:
+Evo nekoliko primera jediničnih testova (Unit Tests) za tvoju klasu Cart. Testovi su organizovani tako da pokrivaju različite funkcionalnosti: dodavanje artikala, granične vrednosti (izuzetke), brisanje i logiku obračuna popusta.
+
+1. Testiranje dodavanja više artikala (Multiple Items):
+[Test]
+public void AddMultipleToCart_AddThreeLaptops_CountersUpdated()
+{
+    Cart cart = new Cart();
+    Laptop laptop = new Laptop { Price = 500 };
+    int quantity = 3;
+    cart.AddMultipleToCart(laptop, quantity);
+    Assert.Multiple(() =>
+    {
+        Assert.That(cart.Size, Is.EqualTo(3));
+        Assert.That(cart.Laptop_counter, Is.EqualTo(3));
+        Assert.That(cart.Amount, Is.EqualTo(1500));
+    });
+}
+
+2. Testiranje ograničenja korpe (Exception test):
+[Test]
+public void AddOneToCart_MoreThanTenItems_ThrowsException()
+{
+    Cart cart = new Cart();
+    Item item = new Item { Price = 10 };
+    for (int i = 0; i < 10; i++) {
+        cart.AddOneToCart(item);
+    }
+    var ex = Assert.Throws<Exception>(() => cart.AddOneToCart(item));
+    Assert.That(ex.Message, Is.EqualTo("Number of items in cart must be 10 or less!"));
+}
+
+[...Dodatni primeri za Calculate, Budget i DeleteAll...]
+
+KORISNIK:
+Moze par testova sa parametrima kao naprimer:
+[TestCase(5, 6)]
+[TestCase(6, 7)]
+public void AddOneToCart_OneMonitorToCart_SuccessDataDriven(int counter, int expectedResult)
+{
+    Cart cart = new Cart();
+    Monitor monitor = new Monitor();
+    cart.Size = counter;
+    cart.AddOneToCart(monitor);
+    Assert.That(expectedResult, Is.EqualTo(cart.Size));
+}
+
+GEMINI:
+Naravno! Testovi sa parametrima (Data-Driven Tests) su odlični jer omogućavaju da isti test pokreneš sa različitim podacima.
+
+1. Testiranje kapaciteta korpe:
+[TestCase(0, 1)]
+[TestCase(5, 6)]
+[TestCase(9, 10)]
+public void AddOneToCart_IncrementSize_Success(int initialSize, int expectedSize)
+{
+    Cart cart = new Cart();
+    cart.Size = initialSize;
+    Monitor monitor = new Monitor();
+    cart.AddOneToCart(monitor);
+    Assert.That(cart.Size, Is.EqualTo(expectedSize));
+}
+
+2. Testiranje AddMultipleToCart sa različitim količinama:
+[TestCase(2, 3, 5)]
+[TestCase(0, 10, 10)]
+public void AddMultipleToCart_UpdateCounters_Correctly(int initialSize, int quantityToAdd, int expectedTotal)
+{
+    Cart cart = new Cart();
+    cart.Size = initialSize;
+    cart.Keyboard_counter = initialSize;
+    Keyboard keyboard = new Keyboard { Price = 50 };
+    cart.AddMultipleToCart(keyboard, quantityToAdd);
+    Assert.Multiple(() => {
+        Assert.That(cart.Size, Is.EqualTo(expectedTotal));
+        Assert.That(cart.Keyboard_counter, Is.EqualTo(expectedTotal));
+    });
+}
+
+3. Testiranje formata datuma:
+[TestCase("2025/12/01")]
+[TestCase("01-12-2025")]
+public void Calculate_WrongDateFormat_ThrowsException(string invalidDate)
+{
+    Cart cart = new Cart();
+    cart.AddOneToCart(new Monitor { Price = 100 });
+    var ex = Assert.Throws<Exception>(() => cart.Calculate(invalidDate));
+    Assert.That(ex.Message, Is.EqualTo("Wrong date format! Date must be in format yyyy-MM-dd"));
+}
+
+[...Dodatni saveti o Edge Cases i Assert.Multiple...]
